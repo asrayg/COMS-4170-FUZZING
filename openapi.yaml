@@ -1,0 +1,880 @@
+openapi: "3.0.3"
+info:
+  title: Graylayer Market Proxy API
+  version: "1.0"
+  description: >
+    OpenAPI specification authored from Graylayer documentation at
+    https://docs.graylayer.tech for use in schema-guided fuzz testing.
+    Graylayer does not publish a machine-readable spec; this file was
+    derived manually as a project artifact.
+
+servers:
+  - url: http://gateway.graylayer.tech/api/v1
+    description: Graylayer Market Gateway
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    Market:
+      type: object
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        active:
+          type: boolean
+        closed:
+          type: boolean
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        active:
+          type: boolean
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        slug:
+          type: string
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+
+  # ── Health ────────────────────────────────────────────────────────────────
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      security: []
+      tags: [health]
+      responses:
+        "200":
+          description: Service is healthy
+
+  # ── Coinbase (no auth required) ───────────────────────────────────────────
+
+  /coinbase/products:
+    get:
+      summary: List Coinbase trading pairs
+      operationId: coinbaseListProducts
+      tags: [coinbase]
+      security: []
+      responses:
+        "200":
+          description: List of products
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded
+        "502":
+          description: Upstream error
+
+  /coinbase/products/{product_id}:
+    get:
+      summary: Get a single Coinbase product
+      operationId: coinbaseGetProduct
+      tags: [coinbase]
+      security: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC-USD
+      responses:
+        "200":
+          description: Product details
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /coinbase/products/{product_id}/ticker:
+    get:
+      summary: Get current ticker for a Coinbase product
+      operationId: coinbaseGetTicker
+      tags: [coinbase]
+      security: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC-USD
+      responses:
+        "200":
+          description: Ticker data
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /coinbase/products/{product_id}/book:
+    get:
+      summary: Get order book for a Coinbase product
+      operationId: coinbaseGetBook
+      tags: [coinbase]
+      security: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC-USD
+        - name: level
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [2]
+            default: 2
+      responses:
+        "200":
+          description: Order book
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /coinbase/products/{product_id}/trades:
+    get:
+      summary: Get recent trades for a Coinbase product
+      operationId: coinbaseGetTrades
+      tags: [coinbase]
+      security: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC-USD
+      responses:
+        "200":
+          description: Recent trades
+        "502":
+          description: Upstream error
+
+  /coinbase/products/{product_id}/candles:
+    get:
+      summary: Get OHLCV candles for a Coinbase product
+      operationId: coinbaseGetCandles
+      tags: [coinbase]
+      security: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC-USD
+        - name: granularity
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [60, 300, 900, 3600, 21600, 86400]
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Candle data
+        "400":
+          description: Invalid parameters
+        "502":
+          description: Upstream error
+
+  /coinbase/currencies:
+    get:
+      summary: List Coinbase currencies
+      operationId: coinbaseListCurrencies
+      tags: [coinbase]
+      security: []
+      responses:
+        "200":
+          description: Currency list
+        "502":
+          description: Upstream error
+
+  /coinbase/time:
+    get:
+      summary: Get Coinbase server time
+      operationId: coinbaseGetTime
+      tags: [coinbase]
+      security: []
+      responses:
+        "200":
+          description: Server time
+
+  # ── Polymarket Gamma ──────────────────────────────────────────────────────
+
+  /polymarket/markets:
+    get:
+      summary: List Polymarket markets
+      operationId: polymarketListMarkets
+      tags: [polymarket]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: active
+          in: query
+          schema:
+            type: boolean
+        - name: closed
+          in: query
+          schema:
+            type: boolean
+        - name: tag_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Market list
+        "401":
+          $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded
+        "502":
+          description: Upstream error
+
+  /polymarket/markets/{id}:
+    get:
+      summary: Get a Polymarket market by ID
+      operationId: polymarketGetMarket
+      tags: [polymarket]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market detail
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /polymarket/markets/slug/{slug}:
+    get:
+      summary: Get a Polymarket market by slug
+      operationId: polymarketGetMarketBySlug
+      tags: [polymarket]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market detail
+        "404":
+          description: Not found
+
+  /polymarket/events:
+    get:
+      summary: List Polymarket events
+      operationId: polymarketListEvents
+      tags: [polymarket]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Event list
+        "401":
+          description: Unauthorized
+        "502":
+          description: Upstream error
+
+  /polymarket/events/{id}:
+    get:
+      summary: Get a Polymarket event by ID
+      operationId: polymarketGetEvent
+      tags: [polymarket]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event detail
+        "404":
+          description: Not found
+
+  /polymarket/tags:
+    get:
+      summary: List Polymarket tags
+      operationId: polymarketListTags
+      tags: [polymarket]
+      responses:
+        "200":
+          description: Tag list
+        "502":
+          description: Upstream error
+
+  /polymarket/tags/{id}:
+    get:
+      summary: Get a Polymarket tag by ID
+      operationId: polymarketGetTag
+      tags: [polymarket]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tag detail
+        "404":
+          description: Not found
+
+  /polymarket/search:
+    get:
+      summary: Search Polymarket markets, events, and profiles
+      operationId: polymarketSearch
+      tags: [polymarket]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+      responses:
+        "200":
+          description: Search results
+        "400":
+          description: Missing or invalid query
+
+  # ── Polymarket CLOB ───────────────────────────────────────────────────────
+
+  /polymarket-clob/book:
+    get:
+      summary: Get order book for a token
+      operationId: polymarketClobGetBook
+      tags: [polymarket-clob]
+      parameters:
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order book
+        "400":
+          description: Bad request
+        "502":
+          description: Upstream error
+
+  /polymarket-clob/price:
+    get:
+      summary: Get best price for a token
+      operationId: polymarketClobGetPrice
+      tags: [polymarket-clob]
+      parameters:
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: side
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [BUY, SELL]
+      responses:
+        "200":
+          description: Best price
+        "400":
+          description: Bad request
+        "502":
+          description: Upstream error
+
+  /polymarket-clob/midpoint:
+    get:
+      summary: Get midpoint price for a token
+      operationId: polymarketClobGetMidpoint
+      tags: [polymarket-clob]
+      parameters:
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Midpoint price
+        "400":
+          description: Bad request
+
+  /polymarket-clob/spread:
+    get:
+      summary: Get bid-ask spread for a token
+      operationId: polymarketClobGetSpread
+      tags: [polymarket-clob]
+      parameters:
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Spread data
+        "400":
+          description: Bad request
+
+  /polymarket-clob/last-trade-price:
+    get:
+      summary: Get last trade price for a token
+      operationId: polymarketClobGetLastTradePrice
+      tags: [polymarket-clob]
+      parameters:
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Last trade price
+        "400":
+          description: Bad request
+
+  /polymarket-clob/prices-history:
+    get:
+      summary: Get historical prices for a token
+      operationId: polymarketClobGetPricesHistory
+      tags: [polymarket-clob]
+      parameters:
+        - name: token_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: interval
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [1m, 5m, 1h, 6h, 1d, 1w]
+      responses:
+        "200":
+          description: Price history
+        "400":
+          description: Bad request
+        "502":
+          description: Upstream error
+
+  /polymarket-clob/time:
+    get:
+      summary: Get server time
+      operationId: polymarketClobGetTime
+      tags: [polymarket-clob]
+      responses:
+        "200":
+          description: Server time
+
+  /polymarket-clob/markets:
+    get:
+      summary: List CLOB markets
+      operationId: polymarketClobListMarkets
+      tags: [polymarket-clob]
+      responses:
+        "200":
+          description: Market list
+        "502":
+          description: Upstream error
+
+  /polymarket-clob/trades:
+    get:
+      summary: Get trades by user or market
+      operationId: polymarketClobGetTrades
+      tags: [polymarket-clob]
+      responses:
+        "200":
+          description: Trade list
+        "502":
+          description: Upstream error
+
+  # ── Kalshi ────────────────────────────────────────────────────────────────
+
+  /kalshi/exchange/status:
+    get:
+      summary: Get Kalshi exchange status
+      operationId: kalshiGetExchangeStatus
+      tags: [kalshi]
+      responses:
+        "200":
+          description: Exchange status
+        "502":
+          description: Upstream error
+
+  /kalshi/markets:
+    get:
+      summary: List Kalshi markets
+      operationId: kalshiListMarkets
+      tags: [kalshi]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: event_ticker
+          in: query
+          schema:
+            type: string
+        - name: series_ticker
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, settled]
+        - name: min_close_ts
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: max_close_ts
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Market list
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "502":
+          description: Upstream error
+
+  /kalshi/markets/{market_id}:
+    get:
+      summary: Get a Kalshi market by ID
+      operationId: kalshiGetMarket
+      tags: [kalshi]
+      parameters:
+        - name: market_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market detail
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /kalshi/markets/{market_id}/orderbook:
+    get:
+      summary: Get Kalshi market order book
+      operationId: kalshiGetOrderbook
+      tags: [kalshi]
+      parameters:
+        - name: market_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order book
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /kalshi/markets/trades:
+    get:
+      summary: Get Kalshi trades
+      operationId: kalshiGetTrades
+      tags: [kalshi]
+      responses:
+        "200":
+          description: Trade list
+        "502":
+          description: Upstream error
+
+  /kalshi/events:
+    get:
+      summary: List Kalshi events
+      operationId: kalshiListEvents
+      tags: [kalshi]
+      responses:
+        "200":
+          description: Event list
+        "502":
+          description: Upstream error
+
+  /kalshi/events/{event_ticker}:
+    get:
+      summary: Get a Kalshi event by ticker
+      operationId: kalshiGetEvent
+      tags: [kalshi]
+      parameters:
+        - name: event_ticker
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event detail
+        "404":
+          description: Not found
+
+  /kalshi/series:
+    get:
+      summary: List Kalshi series
+      operationId: kalshiListSeries
+      tags: [kalshi]
+      responses:
+        "200":
+          description: Series list
+        "502":
+          description: Upstream error
+
+  # ── Gemini ────────────────────────────────────────────────────────────────
+
+  /gemini/v1/prediction-markets/categories:
+    get:
+      summary: List Gemini prediction market categories
+      operationId: geminiListCategories
+      tags: [gemini]
+      responses:
+        "200":
+          description: Category list
+        "502":
+          description: Upstream error
+
+  /gemini/v1/prediction-markets/events:
+    get:
+      summary: List Gemini prediction market events
+      operationId: geminiListEvents
+      tags: [gemini]
+      responses:
+        "200":
+          description: Event list
+        "502":
+          description: Upstream error
+
+  /gemini/v1/prediction-markets/events/{ticker}:
+    get:
+      summary: Get a Gemini event by ticker
+      operationId: geminiGetEvent
+      tags: [gemini]
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event detail
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /gemini/v1/book/{symbol}:
+    get:
+      summary: Get Gemini order book
+      operationId: geminiGetBook
+      tags: [gemini]
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTCUSD
+      responses:
+        "200":
+          description: Order book
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /gemini/v1/trades/{symbol}:
+    get:
+      summary: Get recent Gemini trades
+      operationId: geminiGetTrades
+      tags: [gemini]
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTCUSD
+        - name: limit_trades
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+        - name: since
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Trade list
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  /gemini/v2/ticker/{symbol}:
+    get:
+      summary: Get Gemini ticker
+      operationId: geminiGetTicker
+      tags: [gemini]
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTCUSD
+      responses:
+        "200":
+          description: Ticker data
+        "404":
+          description: Not found
+        "502":
+          description: Upstream error
+
+  # ── Forecastex ────────────────────────────────────────────────────────────
+
+  /forecastex/contracts:
+    get:
+      summary: List Forecastex contracts
+      operationId: forecastexListContracts
+      tags: [forecastex]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        "200":
+          description: Contract list
+        "400":
+          description: Bad request
+        "502":
+          description: Upstream error
