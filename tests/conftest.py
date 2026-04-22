@@ -1,24 +1,46 @@
-import os
+"""Pytest fixtures + hook registration.
+
+Importing fuzz.hooks registers all schemathesis hooks and custom checks
+globally for the pytest session.
+"""
+from __future__ import annotations
+
 import pytest
-from dotenv import load_dotenv
 
-load_dotenv()
-
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "readonly: safe read-only endpoints")
-    config.addinivalue_line("markers", "destructive: endpoints that mutate state — skip by default")
+from fuzz import hooks  # noqa: F401 — imported for side effects (hook registration)
+from fuzz.reporting import Reporter
 
 
 @pytest.fixture(scope="session")
-def base_url():
-    url = os.getenv("GRAYLAYER_BASE_URL", "http://gateway.graylayer.tech/api/v1")
-    return url.rstrip("/")
+def gateway_reporter() -> Reporter:
+    r = Reporter("gateway_findings")
+    yield r
+    r.flush()
 
 
 @pytest.fixture(scope="session")
-def auth_headers():
-    key = os.getenv("GRAYLAYER_API_KEY")
-    if key:
-        return {"X-API-Key": key}
-    return {}
+def data_reporter() -> Reporter:
+    r = Reporter("data_findings")
+    yield r
+    r.flush()
+
+
+@pytest.fixture(scope="session")
+def differential_reporter() -> Reporter:
+    r = Reporter("differential_findings")
+    yield r
+    r.flush()
+
+
+@pytest.fixture(scope="session")
+def stateful_reporter() -> Reporter:
+    r = Reporter("stateful_findings")
+    yield r
+    r.flush()
+
+
+@pytest.fixture(scope="session")
+def negative_reporter() -> Reporter:
+    r = Reporter("negative_findings")
+    yield r
+    r.flush()
