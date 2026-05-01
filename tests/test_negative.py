@@ -15,13 +15,11 @@ import pytest
 import requests
 
 from fuzz.config import (
-    DATA_URL,
     GATEWAY_URL,
     REQUEST_TIMEOUT,
-    data_headers,
     gateway_headers,
 )
-from fuzz.negatives import DATA_NEGATIVES, GATEWAY_NEGATIVES, NegativeCase
+from fuzz.negatives import GATEWAY_NEGATIVES, NegativeCase
 from fuzz.reporting import Finding, classify
 
 
@@ -35,14 +33,6 @@ def _ids(cases: list[NegativeCase]) -> list[str]:
 def test_gateway_negative(case: NegativeCase, negative_reporter):
     url = f"{GATEWAY_URL}{case.path}"
     _run(case, url, gateway_headers(), negative_reporter)
-
-
-@pytest.mark.negative
-@pytest.mark.data
-@pytest.mark.parametrize("case", DATA_NEGATIVES, ids=_ids(DATA_NEGATIVES))
-def test_data_negative(case: NegativeCase, negative_reporter):
-    url = f"{DATA_URL}{case.path}"
-    _run(case, url, data_headers(), negative_reporter)
 
 
 def _run(case: NegativeCase, url: str, headers: dict, reporter) -> None:

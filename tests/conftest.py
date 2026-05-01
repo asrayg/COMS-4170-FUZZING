@@ -19,13 +19,6 @@ def gateway_reporter() -> Reporter:
 
 
 @pytest.fixture(scope="session")
-def data_reporter() -> Reporter:
-    r = Reporter("data_findings")
-    yield r
-    r.flush()
-
-
-@pytest.fixture(scope="session")
 def differential_reporter() -> Reporter:
     r = Reporter("differential_findings")
     yield r

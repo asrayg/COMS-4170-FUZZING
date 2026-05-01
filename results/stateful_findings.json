@@ -1,0 +1,272 @@
+[
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{id}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "id": "1"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market id '1' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.1084218
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{slug}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nfl-lac-ten-2025-11-02"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market slug 'aec-nfl-lac-ten-2025-11-02' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.109652
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{id}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "id": "2"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market id '2' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.110531
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{slug}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nfl-car-gb-2025-11-02"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market slug 'aec-nfl-car-gb-2025-11-02' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.1107578
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{id}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "id": "3"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market id '3' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.1109009
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{slug}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nfl-min-det-2025-11-02"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market slug 'aec-nfl-min-det-2025-11-02' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.111181
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{id}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "id": "4"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market id '4' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.111344
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{slug}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nfl-atl-ne-2025-11-02"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market slug 'aec-nfl-atl-ne-2025-11-02' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.111618
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{id}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "id": "5"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market id '5' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.111827
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/markets/{slug}",
+    "method": "GET",
+    "status": 404,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nfl-no-lar-2025-11-02"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "market slug 'aec-nfl-no-lar-2025-11-02' from list returned 404 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611395.11204
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/events/{slug}",
+    "method": "GET",
+    "status": 400,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nba-sa-chi-2025-11-10"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": "{'code': 3, 'message': 'type mismatch, parameter: id, error: strconv.ParseInt: parsing \"aec-nba-sa-chi-2025-11-10\": invalid syntax', 'details': []}",
+    "error": "event slug 'aec-nba-sa-chi-2025-11-10' from list returned 400 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611396.4746408
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/events/{slug}",
+    "method": "GET",
+    "status": 400,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nba-ind-gs-2025-11-09"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": "{'code': 3, 'message': 'type mismatch, parameter: id, error: strconv.ParseInt: parsing \"aec-nba-ind-gs-2025-11-09\": invalid syntax', 'details': []}",
+    "error": "event slug 'aec-nba-ind-gs-2025-11-09' from list returned 400 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611396.475805
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/polymarket-us/events/{slug}",
+    "method": "GET",
+    "status": 400,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "slug": "aec-nba-min-uta-2025-11-10"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": "{'code': 3, 'message': 'type mismatch, parameter: id, error: strconv.ParseInt: parsing \"aec-nba-min-uta-2025-11-10\": invalid syntax', 'details': []}",
+    "error": "event slug 'aec-nba-min-uta-2025-11-10' from list returned 400 on detail endpoint",
+    "elapsed_ms": null,
+    "ts": 1777611396.475961
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/coinbase/products/{product_id}/ticker",
+    "method": "GET",
+    "status": 400,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "product_id": "GNO-USDT"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "product 'GNO-USDT' listed but ticker returned 400",
+    "elapsed_ms": null,
+    "ts": 1777611399.09895
+  },
+  {
+    "service": "gateway",
+    "endpoint": "/api/v1/coinbase/products/{product_id}/ticker",
+    "method": "GET",
+    "status": 400,
+    "category": "invariant",
+    "severity": "high",
+    "query": null,
+    "path_params": {
+      "product_id": "PERP-EUR"
+    },
+    "headers": null,
+    "request_body": null,
+    "response_snippet": null,
+    "error": "product 'PERP-EUR' listed but ticker returned 400",
+    "elapsed_ms": null,
+    "ts": 1777611399.107705
+  }
+]

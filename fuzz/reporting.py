@@ -65,23 +65,27 @@ class Reporter:
 
 
 def classify(status: int | None, error: str | None) -> tuple[str, str]:
-    """Return (category, severity) for a response."""
+    """Return (category, severity) for a response.
+
+    Status takes precedence over error text — a 500 with a schemathesis
+    validation message is a crash, not an "unexpected" event.
+    """
+    # Hard server errors are crashes regardless of any error text.
+    if status is not None and status >= 500:
+        if status in (502, 503):
+            return "upstream", "low"
+        return "crash", "high"
+
     if error:
         if "timeout" in error.lower():
             return "timeout", "medium"
         if "connection" in error.lower() or "ssl" in error.lower():
             return "transport", "medium"
-        # schemathesis validation errors land here
         if "validation" in error.lower() or "schema" in error.lower():
             return "contract", "high"
         return "unexpected", "medium"
     if status is None:
         return "unknown", "low"
-    if status >= 500:
-        # 502/503 are documented upstream-failure codes → low severity
-        if status in (502, 503):
-            return "upstream", "low"
-        return "crash", "high"  # 500, 504, etc. indicate a server bug
     if status == 429:
         return "rate_limit", "info"
     if 400 <= status < 500:

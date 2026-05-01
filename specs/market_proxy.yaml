@@ -9,7 +9,7 @@ info:
     spec; this file was derived manually as a project artifact.
 
 servers:
-  - url: http://gateway.graylayer.tech
+  - url: https://gateway.graylayer.tech
     description: Graylayer Market Gateway (production, per docs)
 
 components:
@@ -192,11 +192,15 @@ paths:
         "200": { description: Server time }
 
   # ── Polymarket Gamma ──────────────────────────────────────────────────────
-  /api/v1/polymarket/markets:
+  # ── Polymarket US (gateway proxy of Polymarket's US public API) ──────────
+  # Per docs: platform key is `polymarket-us`. There is NO CLOB platform on
+  # this server (gateway returns "Unknown platform: polymarket-us-clob").
+
+  /api/v1/polymarket-us/events:
     get:
-      summary: List Polymarket markets
-      operationId: polymarketListMarkets
-      tags: [polymarket]
+      summary: List Polymarket-US events
+      operationId: polymarketUsListEvents
+      tags: [polymarket-us]
       parameters:
         - name: limit
           in: query
@@ -210,49 +214,71 @@ paths:
         - name: closed
           in: query
           schema: { type: boolean }
-        - name: tag_id
+        - name: archived
           in: query
-          schema: { type: integer }
+          schema: { type: boolean }
+        - name: featured
+          in: query
+          schema: { type: boolean }
+        - name: live
+          in: query
+          schema: { type: boolean }
+        - name: slug
+          in: query
+          schema: { type: string }
+        - name: tagSlug
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: seriesId
+          in: query
+          schema: { type: string }
+        - name: orderBy
+          in: query
+          schema: { type: string }
+        - name: orderDirection
+          in: query
+          schema: { type: string, enum: [asc, desc] }
       responses:
-        "200": { description: Market list }
+        "200": { description: Event list }
         "401": { description: Unauthorized }
-        "429": { description: Rate limit exceeded }
         "502": { description: Upstream error }
 
-  /api/v1/polymarket/markets/{id}:
+  /api/v1/polymarket-us/events/{id}:
     get:
-      summary: Get a Polymarket market by ID
-      operationId: polymarketGetMarket
-      tags: [polymarket]
+      summary: Get a Polymarket-US event by ID or slug
+      operationId: polymarketUsGetEvent
+      tags: [polymarket-us]
       parameters:
         - name: id
           in: path
           required: true
           schema: { type: string }
       responses:
-        "200": { description: Market detail }
+        "200": { description: Event detail }
         "404": { description: Not found }
-        "502": { description: Upstream error }
 
-  /api/v1/polymarket/markets/slug/{slug}:
+  /api/v1/polymarket-us/partners/events/{externalId}:
     get:
-      summary: Get a Polymarket market by slug
-      operationId: polymarketGetMarketBySlug
-      tags: [polymarket]
+      summary: Get a Polymarket-US event by partner external ID
+      operationId: polymarketUsGetEventByExternalId
+      tags: [polymarket-us]
       parameters:
-        - name: slug
+        - name: externalId
           in: path
           required: true
           schema: { type: string }
       responses:
-        "200": { description: Market detail }
+        "200": { description: Event detail }
         "404": { description: Not found }
 
-  /api/v1/polymarket/events:
+  /api/v1/polymarket-us/markets:
     get:
-      summary: List Polymarket events
-      operationId: polymarketListEvents
-      tags: [polymarket]
+      summary: List Polymarket-US markets
+      operationId: polymarketUsListMarkets
+      tags: [polymarket-us]
       parameters:
         - name: limit
           in: query
@@ -263,182 +289,191 @@ paths:
         - name: active
           in: query
           schema: { type: boolean }
+        - name: closed
+          in: query
+          schema: { type: boolean }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: seriesId
+          in: query
+          schema: { type: string }
+        - name: orderBy
+          in: query
+          schema: { type: string }
+        - name: orderDirection
+          in: query
+          schema: { type: string, enum: [asc, desc] }
       responses:
-        "200": { description: Event list }
+        "200": { description: Market list }
         "401": { description: Unauthorized }
         "502": { description: Upstream error }
 
-  /api/v1/polymarket/events/{id}:
+  /api/v1/polymarket-us/markets/{id}:
     get:
-      summary: Get a Polymarket event by ID
-      operationId: polymarketGetEvent
-      tags: [polymarket]
+      summary: Get a Polymarket-US market by ID or slug
+      operationId: polymarketUsGetMarket
+      tags: [polymarket-us]
       parameters:
         - name: id
           in: path
           required: true
           schema: { type: string }
       responses:
-        "200": { description: Event detail }
+        "200": { description: Market detail }
         "404": { description: Not found }
 
-  /api/v1/polymarket/tags:
+  /api/v1/polymarket-us/markets/{slug}/bbo:
     get:
-      summary: List Polymarket tags
-      operationId: polymarketListTags
-      tags: [polymarket]
+      summary: Get best bid/offer for a Polymarket-US market
+      operationId: polymarketUsGetMarketBbo
+      tags: [polymarket-us]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
       responses:
-        "200": { description: Tag list }
+        "200": { description: BBO + market stats }
+        "404": { description: Not found }
+
+  /api/v1/polymarket-us/markets/{slug}/book:
+    get:
+      summary: Get full order book for a Polymarket-US market
+      operationId: polymarketUsGetMarketBook
+      tags: [polymarket-us]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Order book }
+        "404": { description: Not found }
+
+  /api/v1/polymarket-us/markets/{slug}/settlement:
+    get:
+      summary: Get settlement price for a resolved Polymarket-US market
+      operationId: polymarketUsGetMarketSettlement
+      tags: [polymarket-us]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Settlement price }
+        "404": { description: Not found }
+
+  /api/v1/polymarket-us/series:
+    get:
+      summary: List Polymarket-US series
+      operationId: polymarketUsListSeries
+      tags: [polymarket-us]
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 500, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200": { description: Series list }
         "502": { description: Upstream error }
 
-  /api/v1/polymarket/tags/{id}:
+  /api/v1/polymarket-us/series/{id}:
     get:
-      summary: Get a Polymarket tag by ID
-      operationId: polymarketGetTag
-      tags: [polymarket]
+      summary: Get a Polymarket-US series by ID or slug
+      operationId: polymarketUsGetSeries
+      tags: [polymarket-us]
       parameters:
         - name: id
           in: path
           required: true
           schema: { type: string }
       responses:
-        "200": { description: Tag detail }
+        "200": { description: Series detail }
         "404": { description: Not found }
 
-  /api/v1/polymarket/search:
+  /api/v1/polymarket-us/sports:
     get:
-      summary: Search Polymarket markets, events, and profiles
-      operationId: polymarketSearch
-      tags: [polymarket]
+      summary: List Polymarket-US sports
+      operationId: polymarketUsListSports
+      tags: [polymarket-us]
+      responses:
+        "200": { description: Sports list }
+        "502": { description: Upstream error }
+
+  /api/v1/polymarket-us/sports/{slug}/events:
+    get:
+      summary: Polymarket-US sports events by sport slug (legacy)
+      operationId: polymarketUsSportsEventsBySlug
+      tags: [polymarket-us]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Sports events }
+        "404": { description: Not found }
+
+  /api/v1/polymarket-us/sports/leagues/{slug}/events:
+    get:
+      summary: Polymarket-US events by league slug
+      operationId: polymarketUsSportsEventsByLeague
+      tags: [polymarket-us]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Sports events }
+        "404": { description: Not found }
+
+  /api/v1/polymarket-us/sports/teams:
+    get:
+      summary: List Polymarket-US sports teams
+      operationId: polymarketUsSportsTeams
+      tags: [polymarket-us]
+      responses:
+        "200": { description: Teams list }
+        "502": { description: Upstream error }
+
+  /api/v1/polymarket-us/sports/teams/{provider}:
+    get:
+      summary: List Polymarket-US sports teams for a provider
+      operationId: polymarketUsSportsTeamsByProvider
+      tags: [polymarket-us]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Teams list }
+        "404": { description: Not found }
+
+  /api/v1/polymarket-us/search:
+    get:
+      summary: Full-text search across Polymarket-US events and markets
+      operationId: polymarketUsSearch
+      tags: [polymarket-us]
       parameters:
         - name: q
           in: query
           required: true
           schema: { type: string, minLength: 1, maxLength: 200 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 500, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
       responses:
         "200": { description: Search results }
         "400": { description: Missing or invalid query }
-
-  # ── Polymarket CLOB ───────────────────────────────────────────────────────
-  /api/v1/polymarket-clob/book:
-    get:
-      summary: Get order book for a token
-      operationId: polymarketClobGetBook
-      tags: [polymarket-clob]
-      parameters:
-        - name: token_id
-          in: query
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: Order book }
-        "400": { description: Bad request }
-        "502": { description: Upstream error }
-
-  /api/v1/polymarket-clob/price:
-    get:
-      summary: Get best price for a token
-      operationId: polymarketClobGetPrice
-      tags: [polymarket-clob]
-      parameters:
-        - name: token_id
-          in: query
-          required: true
-          schema: { type: string }
-        - name: side
-          in: query
-          required: true
-          schema: { type: string, enum: [BUY, SELL] }
-      responses:
-        "200": { description: Best price }
-        "400": { description: Bad request }
-        "502": { description: Upstream error }
-
-  /api/v1/polymarket-clob/midpoint:
-    get:
-      summary: Get midpoint price for a token
-      operationId: polymarketClobGetMidpoint
-      tags: [polymarket-clob]
-      parameters:
-        - name: token_id
-          in: query
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: Midpoint price }
-        "400": { description: Bad request }
-
-  /api/v1/polymarket-clob/spread:
-    get:
-      summary: Get bid-ask spread for a token
-      operationId: polymarketClobGetSpread
-      tags: [polymarket-clob]
-      parameters:
-        - name: token_id
-          in: query
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: Spread data }
-        "400": { description: Bad request }
-
-  /api/v1/polymarket-clob/last-trade-price:
-    get:
-      summary: Get last trade price for a token
-      operationId: polymarketClobGetLastTradePrice
-      tags: [polymarket-clob]
-      parameters:
-        - name: token_id
-          in: query
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: Last trade price }
-        "400": { description: Bad request }
-
-  /api/v1/polymarket-clob/prices-history:
-    get:
-      summary: Get historical prices for a token
-      operationId: polymarketClobGetPricesHistory
-      tags: [polymarket-clob]
-      parameters:
-        - name: token_id
-          in: query
-          required: true
-          schema: { type: string }
-        - name: interval
-          in: query
-          schema: { type: string, enum: [1m, 5m, 1h, 6h, 1d, 1w] }
-      responses:
-        "200": { description: Price history }
-        "400": { description: Bad request }
-        "502": { description: Upstream error }
-
-  /api/v1/polymarket-clob/time:
-    get:
-      summary: Get server time
-      operationId: polymarketClobGetTime
-      tags: [polymarket-clob]
-      responses:
-        "200": { description: Server time }
-
-  /api/v1/polymarket-clob/markets:
-    get:
-      summary: List CLOB markets
-      operationId: polymarketClobListMarkets
-      tags: [polymarket-clob]
-      responses:
-        "200": { description: Market list }
-        "502": { description: Upstream error }
-
-  /api/v1/polymarket-clob/trades:
-    get:
-      summary: Get trades by user or market
-      operationId: polymarketClobGetTrades
-      tags: [polymarket-clob]
-      responses:
-        "200": { description: Trade list }
-        "502": { description: Upstream error }
 
   # ── Kalshi ────────────────────────────────────────────────────────────────
   /api/v1/kalshi/exchange/status:

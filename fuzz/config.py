@@ -15,11 +15,8 @@ load_dotenv(ROOT / ".env")
 
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-GATEWAY_URL = os.getenv("GRAYLAYER_GATEWAY_URL", "http://gateway.graylayer.tech").rstrip("/")
+GATEWAY_URL = os.getenv("GRAYLAYER_GATEWAY_URL", "https://gateway.graylayer.tech").rstrip("/")
 GATEWAY_KEY = os.getenv("GRAYLAYER_GATEWAY_API_KEY", "").strip()
-
-DATA_URL = os.getenv("GRAYLAYER_DATA_URL", "http://data.graylayer.tech").rstrip("/")
-DATA_KEY = os.getenv("GRAYLAYER_DATA_API_KEY", "").strip()
 
 MAX_EXAMPLES = int(os.getenv("FUZZ_MAX_EXAMPLES", "75"))
 REQUEST_TIMEOUT = float(os.getenv("FUZZ_REQUEST_TIMEOUT", "15"))
@@ -27,7 +24,6 @@ RATE_LIMIT_SLEEP = float(os.getenv("FUZZ_RATE_LIMIT_SLEEP", "0.25"))
 WORKERS = int(os.getenv("FUZZ_WORKERS", "1"))
 
 SPEC_GATEWAY = SPECS_DIR / "market_proxy.yaml"
-SPEC_DATA = SPECS_DIR / "orderbook_history.yaml"
 
 
 def gateway_headers() -> dict[str, str]:
@@ -35,12 +31,4 @@ def gateway_headers() -> dict[str, str]:
     h = {"Accept": "application/json", "User-Agent": "graylayer-fuzz/1.0"}
     if GATEWAY_KEY:
         h["X-API-Key"] = GATEWAY_KEY
-    return h
-
-
-def data_headers() -> dict[str, str]:
-    """Headers used for every orderbook-history call. `x-api-key` per docs."""
-    h = {"Accept": "application/json", "User-Agent": "graylayer-fuzz/1.0"}
-    if DATA_KEY:
-        h["x-api-key"] = DATA_KEY
     return h

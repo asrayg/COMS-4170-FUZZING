@@ -1,21 +1,18 @@
 # Graylayer Fuzz
 
 Schema-guided fuzz testing of the [Graylayer](https://docs.graylayer.tech)
-market-data API, for **COM S / SE 4170 Spring 2026** final project.
-
-Two APIs are under test:
+Market Proxy API, for **COM S / SE 4170 Spring 2026** final project.
 
 | Service | Base URL | Spec |
 |---|---|---|
-| Market Proxy (polymarket / kalshi / gemini / coinbase / forecastex) | `http://gateway.graylayer.tech` | [`specs/market_proxy.yaml`](specs/market_proxy.yaml) |
-| Orderbook History (snapshots + deltas) | `http://data.graylayer.tech` | [`specs/orderbook_history.yaml`](specs/orderbook_history.yaml) |
+| Market Proxy (polymarket / kalshi / gemini / coinbase / forecastex) | `https://gateway.graylayer.tech` | [`specs/market_proxy.yaml`](specs/market_proxy.yaml) |
 
-Neither API publishes a machine-readable spec; both YAML files here were
+The API does not publish a machine-readable spec; the YAML file here was
 authored from the documentation as a project artifact.
 
 ## What this project does
 
-Four complementary techniques target each API:
+Four complementary techniques target the gateway:
 
 1. **Schema-guided fuzzing** with [Schemathesis](https://schemathesis.readthedocs.io)
    — generates diverse, schema-valid inputs for every operation and runs
@@ -25,8 +22,7 @@ Four complementary techniques target each API:
    payloads.
 3. **Differential / invariant tests** (`fuzz/differential.py`) — semantic
    cross-endpoint properties: midpoint ∈ [best_bid, best_ask], spread ≥ 0,
-   snapshot rows sorted by `ts`, delta `sequence` monotone,
-   `count == len(rows)`, anonymous access clamped to 1 day, etc.
+   pagination monotonicity, auth-gate consistency.
 4. **Stateful linked-operation tests** (`fuzz/stateful.py`) — list →
    detail handoffs: every ID a list endpoint returns must resolve at the
    corresponding detail endpoint.
@@ -41,18 +37,15 @@ pip install -r requirements.txt
 
 # 2. configure
 cp .env.example .env
-# then edit .env and paste in your API keys
+# then edit .env and paste in your API key
 #   GRAYLAYER_GATEWAY_API_KEY=...
-#   GRAYLAYER_DATA_API_KEY=...
 
 # 3. smoke check (no network)
 python scripts/smoke.py
 
 # 4. run everything
-./scripts/run_all.sh             # full run, ~10–20 min
-./scripts/run_all.sh --quick     # small, ~2 min
-./scripts/run_all.sh --gateway   # only gateway suite
-./scripts/run_all.sh --data      # only orderbook-history suite
+./scripts/run_all.sh             # full run, ~5–10 min
+./scripts/run_all.sh --quick     # small, ~1 min
 ```
 
 Outputs land in `results/`:
@@ -61,13 +54,10 @@ Outputs land in `results/`:
 results/
 ├── gateway_findings.jsonl           # append-only log of every event
 ├── gateway_findings.json            # consolidated at end of run
-├── data_findings.jsonl              # same, for data.graylayer.tech
-├── data_findings.json
 ├── negative_findings.jsonl          # hand-crafted negative cases
 ├── differential_findings.jsonl      # invariant violations
 ├── stateful_findings.jsonl          # list→detail handoff bugs
 ├── schemathesis_gateway.txt         # raw CLI output (for screenshots)
-├── schemathesis_data.txt
 ├── pytest_report.html               # rich pytest report
 ├── pytest_report.json
 ├── summary.md                       # paper-ready tables
@@ -80,20 +70,18 @@ results/
 
 ```
 graylayer-fuzz/
-├── specs/                           # OpenAPI 3 specs (authored from docs)
-│   ├── market_proxy.yaml
-│   └── orderbook_history.yaml
+├── specs/                           # OpenAPI 3 spec (authored from docs)
+│   └── market_proxy.yaml
 ├── fuzz/                            # shared library
 │   ├── config.py                    # .env + constants
 │   ├── reporting.py                 # Finding dataclass, JSONL writer, classifier
-│   ├── hooks.py                     # schemathesis hooks + 4 custom checks
-│   ├── negatives.py                 # 25+ hand-crafted malformed inputs
-│   ├── differential.py              # 8 cross-endpoint invariants
-│   └── stateful.py                  # 3 linked-operation flows
+│   ├── hooks.py                     # schemathesis hooks + custom checks
+│   ├── negatives.py                 # hand-crafted malformed inputs
+│   ├── differential.py              # cross-endpoint invariants
+│   └── stateful.py                  # linked-operation flows
 ├── tests/                           # pytest suites
 │   ├── conftest.py                  # shared reporter fixtures
 │   ├── test_gateway_fuzz.py         # schemathesis → gateway
-│   ├── test_data_fuzz.py            # schemathesis → data
 │   ├── test_negative.py             # negative cases
 │   ├── test_differential.py         # invariant cases
 │   └── test_stateful.py             # stateful cases

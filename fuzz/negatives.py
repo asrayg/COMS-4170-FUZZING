@@ -23,7 +23,7 @@ HUGE_STRING = "A" * 10_000
 @dataclass(frozen=True)
 class NegativeCase:
     name: str
-    service: str              # "gateway" | "data"
+    service: str              # always "gateway"
     path: str                 # fully-qualified path to hit (base-URL appended at runtime)
     params: dict | None = None
     expected_statuses: tuple[int, ...] = (400, 404, 422)  # acceptable rejections
@@ -71,7 +71,7 @@ GATEWAY_NEGATIVES: list[NegativeCase] = [
     NegativeCase(
         "polymarket_limit_too_large",
         "gateway",
-        "/api/v1/polymarket/markets",
+        "/api/v1/polymarket-us/markets",
         params={"limit": 1_000_000},
         expected_statuses=(200, 400, 422),
         note="limit far above documented max of 500",
@@ -79,14 +79,14 @@ GATEWAY_NEGATIVES: list[NegativeCase] = [
     NegativeCase(
         "polymarket_limit_negative",
         "gateway",
-        "/api/v1/polymarket/markets",
+        "/api/v1/polymarket-us/markets",
         params={"limit": -5},
         note="negative limit (documented minimum is 1)",
     ),
     NegativeCase(
         "polymarket_offset_huge",
         "gateway",
-        "/api/v1/polymarket/markets",
+        "/api/v1/polymarket-us/markets",
         params={"offset": BIG_INT},
         expected_statuses=(200, 400, 422),
         note="offset beyond int64",
@@ -94,45 +94,23 @@ GATEWAY_NEGATIVES: list[NegativeCase] = [
     NegativeCase(
         "polymarket_active_not_boolean",
         "gateway",
-        "/api/v1/polymarket/markets",
+        "/api/v1/polymarket-us/markets",
         params={"active": "maybe"},
         note="non-boolean where boolean expected",
     ),
     NegativeCase(
         "polymarket_search_missing_q",
         "gateway",
-        "/api/v1/polymarket/search",
+        "/api/v1/polymarket-us/search",
         note="required query parameter omitted",
     ),
     NegativeCase(
         "polymarket_search_oversize_q",
         "gateway",
-        "/api/v1/polymarket/search",
+        "/api/v1/polymarket-us/search",
         params={"q": HUGE_STRING},
         expected_statuses=(200, 400, 414, 422),
         note="query string far above documented 200 char max",
-    ),
-
-    # ── CLOB ─────────────────────────────────────────────────────
-    NegativeCase(
-        "clob_price_bad_side",
-        "gateway",
-        "/api/v1/polymarket-clob/price",
-        params={"token_id": "0xdeadbeef", "side": "HODL"},
-        note="side outside enum (BUY/SELL)",
-    ),
-    NegativeCase(
-        "clob_missing_token_id",
-        "gateway",
-        "/api/v1/polymarket-clob/book",
-        note="required token_id missing",
-    ),
-    NegativeCase(
-        "clob_prices_history_bad_interval",
-        "gateway",
-        "/api/v1/polymarket-clob/prices-history",
-        params={"token_id": "0x1", "interval": "42h"},
-        note="interval outside enum",
     ),
 
     # ── Kalshi ───────────────────────────────────────────────────
@@ -201,76 +179,81 @@ GATEWAY_NEGATIVES: list[NegativeCase] = [
         expected_statuses=(404,),
         note="sanity check: unknown route",
     ),
-]
 
-
-DATA_NEGATIVES: list[NegativeCase] = [
+    # ── SQL injection ─────────────────────────────────────────────
     NegativeCase(
-        "data_unknown_exchange",
-        "data",
-        "/api/bitmex/tickers",
-        expected_statuses=(400, 404),
-        note="exchange outside enum",
-    ),
-    NegativeCase(
-        "data_snapshots_bad_ts",
-        "data",
-        "/api/kalshi/snapshots/KXBTC-25",
-        params={"start_ts": "definitely-not-rfc3339"},
-        note="malformed RFC 3339",
-    ),
-    NegativeCase(
-        "data_snapshots_inverted_window",
-        "data",
-        "/api/kalshi/snapshots/KXBTC-25",
-        params={"start_ts": "2030-01-01T00:00:00Z", "end_ts": "2020-01-01T00:00:00Z"},
-        expected_statuses=(200, 400),
-        note="end before start — should return empty 200 or 400",
-    ),
-    NegativeCase(
-        "data_snapshots_way_before_history",
-        "data",
-        "/api/kalshi/snapshots/KXBTC-25",
-        params={"start_ts": "1999-01-01T00:00:00Z", "limit": 10},
-        expected_statuses=(200,),
-        note="documented: start_ts clamps to earliest available",
-    ),
-    NegativeCase(
-        "data_tickers_oversize_prefix",
-        "data",
-        "/api/kalshi/tickers",
-        params={"prefix": HUGE_STRING},
-        expected_statuses=(200, 400, 414),
-        note="very long prefix",
-    ),
-    NegativeCase(
-        "data_ticker_with_special_chars",
-        "data",
-        "/api/kalshi/snapshots/%00%00%00",
-        expected_statuses=(200, 400, 404),
-        note="null bytes in ticker path component",
-    ),
-    NegativeCase(
-        "data_limit_negative",
-        "data",
-        "/api/kalshi/snapshots/KXBTC-25",
-        params={"limit": -1},
-        note="negative limit",
-    ),
-    NegativeCase(
-        "data_limit_overflow",
-        "data",
-        "/api/kalshi/snapshots/KXBTC-25",
-        params={"limit": 10_000_000},
+        "sqli_polymarket_search",
+        "gateway",
+        "/api/v1/polymarket-us/search",
+        params={"q": "' OR 1=1 --"},
         expected_statuses=(200, 400, 422),
-        note="limit far above documented max",
+        note="SQL injection in search query",
     ),
     NegativeCase(
-        "data_anon_old_data_clamp",
-        "data",
-        "/api/kalshi/deltas/KXBTC-25",
-        params={"start_ts": "2026-03-08T00:00:00Z", "limit": 1},
-        expected_statuses=(200, 401),
-        note="docs say anon access is clamped to last 1 day; verify clamp happens",
+        "sqli_kalshi_status",
+        "gateway",
+        "/api/v1/kalshi/markets",
+        params={"status": "open'; DROP TABLE markets;--"},
+        expected_statuses=(200, 400, 422),
+        note="SQL injection in status param",
+    ),
+
+    # ── NoSQL injection ───────────────────────────────────────────
+    NegativeCase(
+        "nosqli_polymarket_id",
+        "gateway",
+        "/api/v1/polymarket-us/markets/%7B%22%24gt%22%3A%22%22%7D",
+        expected_statuses=(400, 404, 422, 500),
+        note="NoSQL $gt operator in path param",
+    ),
+    NegativeCase(
+        "nosqli_search_regex",
+        "gateway",
+        "/api/v1/polymarket-us/search",
+        params={"q": '{"$regex": ".*"}'},
+        expected_statuses=(200, 400, 422),
+        note="NoSQL $regex injection in query",
+    ),
+
+    # ── SSRF probes ───────────────────────────────────────────────
+    NegativeCase(
+        "ssrf_coinbase_product_localhost",
+        "gateway",
+        "/api/v1/coinbase/products/http%3A%2F%2F127.0.0.1%3A80",
+        expected_statuses=(400, 404, 422),
+        note="SSRF probe: localhost URL in path param",
+    ),
+    NegativeCase(
+        "ssrf_gemini_symbol_internal",
+        "gateway",
+        "/api/v1/gemini/v1/book/http%3A%2F%2F169.254.169.254%2Flatest%2Fmeta-data",
+        expected_statuses=(400, 404, 422),
+        note="SSRF probe: AWS metadata endpoint in path param",
+    ),
+
+    # ── Unicode / encoding edge cases ─────────────────────────────
+    NegativeCase(
+        "unicode_bom_search",
+        "gateway",
+        "/api/v1/polymarket-us/search",
+        params={"q": "\ufeffbitcoin"},
+        expected_statuses=(200, 400, 422),
+        note="BOM character prefixed to query",
+    ),
+    NegativeCase(
+        "unicode_rtl_override",
+        "gateway",
+        "/api/v1/polymarket-us/search",
+        params={"q": "\u202ebitcoin"},
+        expected_statuses=(200, 400, 422),
+        note="RTL override character in query",
+    ),
+    NegativeCase(
+        "unicode_null_in_query",
+        "gateway",
+        "/api/v1/polymarket-us/search",
+        params={"q": "bit\x00coin"},
+        expected_statuses=(200, 400, 422),
+        note="embedded null byte in query string",
     ),
 ]

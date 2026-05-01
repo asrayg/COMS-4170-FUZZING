@@ -1,0 +1,674 @@
+======================= Schemathesis test session starts =======================
+Schema location: file:///Users/asray/COMS-4170-FUZZING-1/specs/market_proxy.yaml
+Base URL: https://gateway.graylayer.tech
+Specification version: Open API 3.0.3
+Random seed: 269800395145801068332482224664797303627
+Workers: 1
+Collected API operations: 40
+Collected API links: 0
+API probing: ...API probing: SUCCESS
+Schema analysis: ...Schema analysis: SKIP
+
+GET /health .                                                             [  2%]
+GET /api/v1/coinbase/products .                                           [  5%]
+GET /api/v1/coinbase/products/{product_id} F                              [  7%]
+GET /api/v1/coinbase/products/{product_id}/ticker F                       [ 10%]
+GET /api/v1/coinbase/products/{product_id}/book F                         [ 12%]
+GET /api/v1/coinbase/products/{product_id}/trades F                       [ 15%]
+GET /api/v1/coinbase/products/{product_id}/candles F                      [ 17%]
+GET /api/v1/coinbase/currencies F                                         [ 20%]
+GET /api/v1/coinbase/time F                                               [ 22%]
+GET /api/v1/polymarket-us/events .                                        [ 25%]
+GET /api/v1/polymarket-us/events/{id} F                                   [ 27%]
+GET /api/v1/polymarket-us/partners/events/{externalId} F                  [ 30%]
+GET /api/v1/polymarket-us/markets F                                       [ 32%]
+GET /api/v1/polymarket-us/markets/{id} F                                  [ 35%]
+GET /api/v1/polymarket-us/markets/{slug}/bbo F                            [ 37%]
+GET /api/v1/polymarket-us/markets/{slug}/book F                           [ 40%]
+GET /api/v1/polymarket-us/markets/{slug}/settlement F                     [ 42%]
+GET /api/v1/polymarket-us/series F                                        [ 45%]
+GET /api/v1/polymarket-us/series/{id} F                                   [ 47%]
+GET /api/v1/polymarket-us/sports F                                        [ 50%]
+GET /api/v1/polymarket-us/sports/{slug}/events F                          [ 52%]
+GET /api/v1/polymarket-us/sports/leagues/{slug}/events F                  [ 55%]
+GET /api/v1/polymarket-us/sports/teams F                                  [ 57%]
+GET /api/v1/polymarket-us/sports/teams/{provider} F                       [ 60%]
+GET /api/v1/polymarket-us/search F                                        [ 62%]
+GET /api/v1/kalshi/exchange/status F                                      [ 65%]
+GET /api/v1/kalshi/markets F                                              [ 67%]
+GET /api/v1/kalshi/markets/{market_id} F                                  [ 70%]
+GET /api/v1/kalshi/markets/{market_id}/orderbook F                        [ 72%]
+GET /api/v1/kalshi/markets/trades F                                       [ 75%]
+GET /api/v1/kalshi/events F                                               [ 77%]
+GET /api/v1/kalshi/events/{event_ticker} F                                [ 80%]
+GET /api/v1/kalshi/series F                                               [ 82%]
+GET /api/v1/gemini/v1/prediction-markets/categories F                     [ 85%]
+GET /api/v1/gemini/v1/prediction-markets/events F                         [ 87%]
+GET /api/v1/gemini/v1/prediction-markets/events/{ticker} F                [ 90%]
+GET /api/v1/gemini/v1/book/{symbol} F                                     [ 92%]
+GET /api/v1/gemini/v1/trades/{symbol} F                                   [ 95%]
+GET /api/v1/gemini/v2/ticker/{symbol} F                                   [ 97%]
+GET /api/v1/forecastex/contracts F                                        [100%]
+
+=================================== FAILURES ===================================
+__________________ GET /api/v1/coinbase/products/{product_id} __________________
+1. Test Case ID: rAjT92
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/products/BTC-USD
+
+______________ GET /api/v1/coinbase/products/{product_id}/ticker _______________
+1. Test Case ID: uXUqGA
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/products/BTC-USD/ticker
+
+_______________ GET /api/v1/coinbase/products/{product_id}/book ________________
+1. Test Case ID: P1xKeJ
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/products/BTC-USD/book
+
+______________ GET /api/v1/coinbase/products/{product_id}/trades _______________
+1. Test Case ID: oZAiND
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/products/BTC-USD/trades
+
+______________ GET /api/v1/coinbase/products/{product_id}/candles ______________
+1. Test Case ID: du9fWr
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 400, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/products/BTC-USD/candles
+
+_______________________ GET /api/v1/coinbase/currencies ________________________
+1. Test Case ID: hHb5ND
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/currencies
+
+__________________________ GET /api/v1/coinbase/time ___________________________
+1. Test Case ID: xtNdvJ
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/coinbase/time
+
+____________________ GET /api/v1/polymarket-us/events/{id} _____________________
+1. Test Case ID: AiXhnz
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/events/0
+
+____________ GET /api/v1/polymarket-us/partners/events/{externalId} ____________
+1. Test Case ID: SXKZeF
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/partners/events/0
+
+______________________ GET /api/v1/polymarket-us/markets _______________________
+1. Test Case ID: X46bvz
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 401, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' 'https://gateway.graylayer.tech/api/v1/polymarket-us/markets?active=false&closed=false'
+
+____________________ GET /api/v1/polymarket-us/markets/{id} ____________________
+1. Test Case ID: 8OQkfI
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/markets/0
+
+_________________ GET /api/v1/polymarket-us/markets/{slug}/bbo _________________
+1. Test Case ID: 35ZYQg
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/markets/0/bbo
+
+________________ GET /api/v1/polymarket-us/markets/{slug}/book _________________
+1. Test Case ID: lUkF62
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/markets/0/book
+
+_____________ GET /api/v1/polymarket-us/markets/{slug}/settlement ______________
+1. Test Case ID: c6n3wA
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/markets/0/settlement
+
+_______________________ GET /api/v1/polymarket-us/series _______________________
+1. Test Case ID: SsV5o6
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/series
+
+____________________ GET /api/v1/polymarket-us/series/{id} _____________________
+1. Test Case ID: iHwSMY
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/series/0
+
+_______________________ GET /api/v1/polymarket-us/sports _______________________
+1. Test Case ID: 92rmCT
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/sports
+
+________________ GET /api/v1/polymarket-us/sports/{slug}/events ________________
+1. Test Case ID: jbYQ1n
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/sports/0/events
+
+____________ GET /api/v1/polymarket-us/sports/leagues/{slug}/events ____________
+1. Test Case ID: XNzSIq
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/sports/leagues/0/events
+
+____________________ GET /api/v1/polymarket-us/sports/teams ____________________
+1. Test Case ID: aDOeQ7
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/sports/teams
+
+______________ GET /api/v1/polymarket-us/sports/teams/{provider} _______________
+1. Test Case ID: ySVGhZ
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/polymarket-us/sports/teams/0
+
+_______________________ GET /api/v1/polymarket-us/search _______________________
+1. Test Case ID: LxLE49
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 400
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' 'https://gateway.graylayer.tech/api/v1/polymarket-us/search?q=0'
+
+______________________ GET /api/v1/kalshi/exchange/status ______________________
+1. Test Case ID: lYf20W
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/exchange/status
+
+__________________________ GET /api/v1/kalshi/markets __________________________
+1. Test Case ID: 2W5ZRH
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 400, 401, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' 'https://gateway.graylayer.tech/api/v1/kalshi/markets?cursor='
+
+____________________ GET /api/v1/kalshi/markets/{market_id} ____________________
+1. Test Case ID: 1q1Iwh
+
+- Undocumented HTTP status code
+
+    Received: 401
+    Documented: 200, 404, 502
+
+[401] Unauthorized:
+
+    `{"error":"Unauthorized: invalid or missing API key"}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/markets/0
+
+_______________ GET /api/v1/kalshi/markets/{market_id}/orderbook _______________
+1. Test Case ID: FG0tpK
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/markets/0/orderbook
+
+______________________ GET /api/v1/kalshi/markets/trades _______________________
+1. Test Case ID: UVCjx5
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/markets/trades
+
+__________________________ GET /api/v1/kalshi/events ___________________________
+1. Test Case ID: FmCvJA
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/events
+
+___________________ GET /api/v1/kalshi/events/{event_ticker} ___________________
+1. Test Case ID: Ugj2uf
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/events/0
+
+__________________________ GET /api/v1/kalshi/series ___________________________
+1. Test Case ID: Kcjotj
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/kalshi/series
+
+_____________ GET /api/v1/gemini/v1/prediction-markets/categories ______________
+1. Test Case ID: h2uc2T
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/gemini/v1/prediction-markets/categories
+
+_______________ GET /api/v1/gemini/v1/prediction-markets/events ________________
+1. Test Case ID: 06z9nY
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/gemini/v1/prediction-markets/events
+
+___________ GET /api/v1/gemini/v1/prediction-markets/events/{ticker} ___________
+1. Test Case ID: IE059P
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/gemini/v1/prediction-markets/events/0
+
+_____________________ GET /api/v1/gemini/v1/book/{symbol} ______________________
+1. Test Case ID: OiOxze
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/gemini/v1/book/BTCUSD
+
+____________________ GET /api/v1/gemini/v1/trades/{symbol} _____________________
+1. Test Case ID: VeVsFY
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/gemini/v1/trades/BTCUSD
+
+____________________ GET /api/v1/gemini/v2/ticker/{symbol} _____________________
+1. Test Case ID: gFjoHx
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 404
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/gemini/v2/ticker/BTCUSD
+
+_______________________ GET /api/v1/forecastex/contracts _______________________
+1. Test Case ID: OrdoiA
+
+- Undocumented HTTP status code
+
+    Received: 429
+    Documented: 200, 400, 502
+
+[429] Too Many Requests:
+
+    `{"error":"rate limit exceeded","retry_after":0}`
+
+Reproduce with: 
+
+    curl -X GET -H 'X-API-Key: [Filtered]' https://gateway.graylayer.tech/api/v1/forecastex/contracts
+
+=================================== SUMMARY ====================================
+
+Performed checks:
+    not_a_server_error                              356 / 356 passed          PASSED 
+    status_code_conformance                         105 / 356 passed          FAILED 
+    content_type_conformance                        356 / 356 passed          PASSED 
+    response_headers_conformance                    356 / 356 passed          PASSED 
+    response_schema_conformance                     356 / 356 passed          PASSED 
+    negative_data_rejection                         356 / 356 passed          PASSED 
+    ignored_auth                                    356 / 356 passed          PASSED 
+
+WARNINGS:
+  - Most of the responses from `GET /api/v1/coinbase/products` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/products/{product_id}` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/products/{product_id}/ticker` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/products/{product_id}/book` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/products/{product_id}/trades` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/products/{product_id}/candles` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/currencies` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/coinbase/time` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/polymarket-us/events` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/polymarket-us/events/{id}` have a 401 status code. Did you specify proper API credentials?
+  - Most of the responses from `GET /api/v1/polymarket-us/partners/events/{externalId}` have a 401 status code. Did you specify proper API credentials?
+
+Note: Use the 'X-Schemathesis-TestCaseId' header to correlate test case ids from failure messages with server logs for debugging.
+
+Note: To replicate these test failures, rerun with `--hypothesis-seed=269800395145801068332482224664797303627`
+
+======================== 3 passed, 37 failed in 39.88s =========================
