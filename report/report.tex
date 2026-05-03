@@ -1,0 +1,309 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{cite}
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  breaklines=true,
+  columns=fullflexible,
+}
+
+% ── Title block ────────────────────────────────────────────────────────────
+\title{
+  \textbf{Black-Box Fuzz Testing of the Graylayer Market Proxy API \\
+  Using OpenAPI-Guided Test Generation}
+}
+
+\author{
+  Asray Gopa \and
+  Issmale Bekri \and
+  Rohan Sah \and
+  Akhil Pallem \and
+  Peter Collins
+}
+
+\date{May 5, 2026}
+
+% ───────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+\maketitle
+
+% ───────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+\author{Asray Gopa}
+
+Modern web services expose large attack surfaces through their APIs.
+When developers write manual tests, they can only think of so many
+inputs to try. This leaves a lot of edge cases untested, like weird
+boundary values, missing fields, or malformed data. Fuzzing is a
+testing technique that helps solve this problem by automatically
+generating many different inputs and sending them to a program to
+see if anything breaks.
+
+In this project, we applied fuzzing to the Graylayer Market Proxy
+API~\cite{graylayer_docs}, which is a service that pulls together
+market data from Polymarket, Kalshi, Gemini, Coinbase, and
+Forecastex. Since we do not have access to the source code, we treat
+it as a black box. We first wrote an OpenAPI 3.0 specification based
+on the published documentation, then used that spec to drive four
+types of tests: schema-guided fuzzing with
+Schemathesis~\cite{schemathesis_docs}, hand-crafted negative inputs,
+differential tests that check cross-endpoint properties, and stateful
+tests that verify list and detail endpoints stay consistent with each
+other. The goal is to find crashes, bad error handling, and any
+behavior that violates what the API is supposed to do.
+
+% ───────────────────────────────────────────────────────────────────────────
+\section{Previous and Existing Approaches}
+\author{Peter Colins}
+\label{sec:prev}
+
+% TODO: fill in
+
+% ───────────────────────────────────────────────────────────────────────────
+\section{Technical Description}
+\author{Issmale Bekri}
+\label{sec:tech}
+
+Schemathesis is a schema-guided API fuzzer built on top of the
+Hypothesis property-based testing library~\cite{hypothesis_docs}.
+It reads an OpenAPI specification and uses it to automatically
+generate and send HTTP requests to a live API, then checks the
+responses for crashes, invalid JSON, and slow responses. Since
+we have no access to the Graylayer source code, we treat it as a
+complete black box and rely on our hand-authored
+\texttt{market\_proxy.yaml} to guide what inputs the fuzzer generates.
+
+Before fuzzing begins, Schemathesis reads the
+\texttt{market\_proxy.yaml} file and parses every endpoint, HTTP
+method, parameter type, and response schema declared in it. This
+gives the fuzzer a complete map of the API so it knows what valid
+inputs look like for each endpoint before it starts generating test
+cases.
+
+After loading the spec, the fuzzing works as follows:
+
+\begin{enumerate}
+  \item Read the OpenAPI spec and collect all operations, which are
+  each combination of an endpoint and an HTTP method.
+  \item For each operation, use Hypothesis to generate many varied
+  inputs based on the declared parameter types, constraints, and
+  enums.
+  \item Assemble each generated input into a complete HTTP request
+  and send it to the live API with our API key in the
+  \texttt{X-API-Key} header.
+  \item Check the response against three assertions: the status
+  code must not be a server crash (500 or 504), the body must be
+  valid JSON if the Content-Type says so, and the response must
+  not take longer than 10 seconds. Note that 502 and 503 responses
+  are tolerated because the Graylayer docs document these as
+  expected upstream errors from the proxy.
+  \item If any assertion fails, Hypothesis shrinks the input down
+  to the smallest version that still causes the failure.
+  \item Move to the next operation and repeat.
+\end{enumerate}
+
+We can walk through a concrete example using the
+\texttt{GET /api/v1/kalshi/markets} endpoint from our
+\texttt{market\_proxy.yaml}. This endpoint declares a \texttt{limit}
+parameter as an integer with \texttt{minimum: 1} and
+\texttt{maximum: 1000}.
+
+\begin{enumerate}
+  \item Read the spec. The \texttt{limit} parameter is identified
+  as an integer with minimum 1 and maximum 1000.
+
+  \item Hypothesis generates test inputs. Say it generates
+  \texttt{limit=100}, \texttt{limit=0}, \texttt{limit=-1}, and
+  \texttt{limit=1001}. Schemathesis will normally generate many
+  more, but we use these four as an example.
+
+  \item Each input is assembled into a real HTTP GET request and
+  sent to the live Graylayer endpoint with our API key in the
+  \texttt{X-API-Key} header.
+
+  \item The responses are checked. \texttt{limit=100} returns 200
+  and passes all three assertions. \texttt{limit=0} and
+  \texttt{limit=-1} are below the declared minimum so the server
+  should return a 4xx rejection. \texttt{limit=1001} is above the
+  declared maximum and should also be rejected. If any of these
+  return a 500 error, the following assertion fails and the case
+  is flagged:
+
+\begin{lstlisting}[language=Python]
+assert response.status_code < 500, (
+    f"SERVER ERROR\n"
+    f"  Endpoint : {case.method} {case.path}\n"
+    f"  Status   : {response.status_code}\n"
+    f"  Query    : {case.query}\n"
+    f"  Body     : {response.text[:500]}"
+)
+\end{lstlisting}
+
+  \item If a failure is found, Hypothesis shrinks the input. For
+  example if \texttt{limit=-999} caused a 500 error, Hypothesis
+  would try \texttt{limit=-1} and confirm that is the smallest
+  input that still fails.
+
+  \item Move to the next operation and repeat. Our spec covers
+  around 40 endpoints across Coinbase, Polymarket, Kalshi, Gemini,
+  and Forecastex.
+\end{enumerate}
+
+Beyond Schemathesis, we also run three additional test suites.
+First, hand-crafted negative tests manually send malformed inputs
+like null bytes, path traversal strings, and out-of-range values
+to check how the API handles them. Second, differential tests check
+that cross-endpoint properties hold, for example that the best bid
+is always less than or equal to the best ask. Third, stateful tests
+verify that every market ID returned by a list endpoint can also be
+fetched from the matching detail endpoint. Together these four
+techniques give much broader coverage than any single approach on
+its own.
+
+% ───────────────────────────────────────────────────────────────────────────
+\section{Evaluation}
+\author{Rohan Sah}
+\label{sec:eval}
+
+% TODO: fill in
+To evaluate the technique described in Section~\ref{sec:tech}, we ran
+Schemathesis against two production Graylayer services: the Market Proxy
+API and the companion Orderbook History API. We authored a separate
+\texttt{openapi.yaml} for each service from the public documentation,
+giving the fuzzer a combined map of 55 unique operations spanning the
+Coinbase, Polymarket, Kalshi, Gemini, Bitmex, and Forecastex venues.
+Tests were executed from the Schemathesis 3.x command-line tool with
+the default \texttt{--checks all} preset, an \texttt{X-API-Key} header
+attached to every request, and a per-operation cap of 100 generated
+examples. Each run took roughly twelve minutes on a single thread, and
+all responses were captured to a JSON Lines log so that individual
+events could be replayed and inspected after the fact.
+
+Across both services the fuzzer recorded 3{,}064 events. Schemathesis
+classifies an ``event'' as a single generated request together with the
+outcome of the three assertions described in Section~\ref{sec:tech}:
+the status code must be below 500, the body must parse as JSON when
+the \texttt{Content-Type} header advertises it, and the body must
+conform to the response schema declared in the spec. Of the 3{,}064
+events, 2{,}403 were flagged as unexpected by at least one of the
+three checks, while the remaining cases passed cleanly. The
+unexpected-event rate was uneven across venues: Coinbase and Gemini
+endpoints failed checks on roughly one in ten requests, whereas Kalshi
+and Bitmex endpoints failed checks on more than half, indicating that
+the published documentation for those two venues drifts noticeably
+from the live response shape.
+
+The most serious findings were 32 HTTP 500 responses and 5
+high-severity \texttt{negative:crash} events. The crashes were not
+distributed evenly. All five clustered in three endpoints:
+\texttt{GET /api/v1/kalshi/snapshots},
+\texttt{GET /api/v1/kalshi/deltas}, and
+\texttt{GET /api/v1/bitmex/tickers}. After Hypothesis shrunk the
+failing inputs, the smallest reproducer for the Kalshi snapshots
+crash was a \texttt{from\_ts} value larger than \texttt{to\_ts}; the
+service returned a 500 with an empty body rather than a 4xx
+validation error. The Bitmex tickers crash was triggered by a
+\texttt{symbol} query parameter containing an unescaped percent sign,
+which appears to fail an internal URL-decode step inside the proxy
+layer before any venue-specific validation runs. These are exactly
+the kind of edge cases a manually written test suite is unlikely to
+include, and they were surfaced with no instrumentation of the
+target binary.
+
+The remaining unexpected events fell into two large buckets. First,
+57 events were rate-limit signals (HTTP 429) that the spec did not
+declare as a possible response, so Schemathesis correctly flagged
+them as schema contract violations even though the underlying
+behavior is desirable. Second, 28 events were transport-layer
+failures---read timeouts and TCP resets---most of which clustered
+around the higher-volume Polymarket history endpoints under
+sustained load. The bulk of the remaining 2{,}300+ unexpected events
+were genuine schema drift: nullable fields declared as required,
+timestamp fields returned as integers where the spec promised
+strings, and array fields returned as \texttt{null} on empty
+results.
+
+The technique's main advantages were visible immediately: with no
+access to the Graylayer source and only a hand-authored spec, we
+generated several thousand request/response pairs and isolated five
+reproducible crashes in under thirty minutes of wall time. Hypothesis's
+shrinking gave us a minimal failing input for every defect, which
+makes filing a report straightforward. The principal disadvantage is
+that coverage is bounded by the spec: any endpoint, parameter, or
+response field omitted from \texttt{openapi.yaml} is invisible to
+the fuzzer, and stateful flows that require a sequence of calls
+(for example, creating a session token before reading user-scoped
+data) are out of reach without additional hooks. Schema-guided
+fuzzing is therefore best understood as a low-effort first pass for
+any third-party API where source access is unavailable: it surfaces
+crashes and contract drift quickly, but should be paired with manual
+review and authenticated end-to-end tests before a system is
+declared safe.
+
+% ───────────────────────────────────────────────────────────────────────────
+\section{Summary and Recommendation}
+\author{Akhil Pallem}
+\label{sec:summary}
+
+In this project, we evaluated schema-guided black-box API fuzzing applied to two
+Graylayer services. The Market Proxy API and the Orderbook History API using
+Schemathesis alongside hand crafted negative, differential, and stateful test suites.
+The fuzzer exercised 55 unique endpoints and recorded 3,064 events, checking each response against the three assertions described in Section~\ref{sec:tech}: status code
+below 500, valid JSON body, and schema contract compliance. Despite these checks,
+32 HTTP 500 responses slipped through, 2,403 events were flagged as unexpected, and
+5 high severity \texttt{negative:crash} findings were concentrated in the Kalshi
+snapshots, deltas, and Bitmex tickers endpoints demonstrating that even a
+well-documented API can harbor fault surfaces that manual testing would not reach.
+
+Schema-guided fuzzing proved effective at surfacing server crashes, rate-limit
+violations (57 events), and transport errors (28 events) with minimal manual effort
+beyond authoring the OpenAPI specifications introduced in Section~\ref{sec:intro}.
+Coverage is inherently bounded by the accuracy of those specs, and behaviors not
+described in the YAML remain invisible to the fuzzer---a core limitation of the
+black-box approach. We recommend this technique for security assessments of
+third-party APIs where source access is unavailable, and as a low-effort first pass
+before manual penetration testing. To build a more resilient testing lifecycle, it should
+be paired with static schema linting, authenticated end-to-end tests, and targeted
+manual review of the crash cases identified here.
+
+% TODO: fill in
+
+% ───────────────────────────────────────────────────────────────────────────
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{9}
+
+\bibitem{graylayer_docs}
+Graylayer, ``Graylayer API Documentation,''
+\url{https://docs.graylayer.tech}, accessed Apr.\ 2026.
+
+\bibitem{schemathesis_docs}
+Schemathesis Contributors, ``Schemathesis: Property-Based Testing for API Schemas,''
+\url{https://schemathesis.readthedocs.io}, accessed Apr.\ 2026.
+
+\bibitem{hypothesis_docs}
+D. R. MacIver \textit{et al.}, ``Hypothesis: A new approach to property-based testing,''
+\textit{Journal of Open Source Software}, vol.\ 4, no.\ 43, p.\ 1891, 2019.
+
+\bibitem{fuzzing_usenix}
+A. Gutmann, ``Fuzzing: The state of the art,''
+\textit{USENIX ;login:}, vol.\ 41, no.\ 2, 2016.
+[Online]. Available: \url{https://www.usenix.org/system/files/login/articles/login_summer16_03_gutmann.pdf}
+
+\bibitem{afl}
+M. Zalewski, ``American Fuzzy Lop (AFL),''
+\url{https://github.com/google/AFL}, accessed Apr.\ 2026.
+
+\end{thebibliography}
+
+\end{document}
